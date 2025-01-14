@@ -41,12 +41,18 @@ fn main() {
 
     let mut random_positions = Vec::new();
 
+    let args: Vec<String> = std::env::args().collect();
+    let num_positions: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(1000); // Allow user to specify in CLI how many teapots there are, default to 1000
+    let float_range: f32 = args.get(2).and_then(|s: &String| s.parse().ok()).unwrap_or(64.0); // Allow user to range in CLI
+    let range = -float_range..float_range;
+
     let mut rng = StdRng::seed_from_u64(0);
-    for _ in 0..1000 {
+
+    for _ in 0..num_positions {
         random_positions.push([
-            rng.gen_range(-64.0..64.0),
-            rng.gen_range(-64.0..64.0),
-            rng.gen_range(-64.0..64.0),
+            rng.gen_range(range.clone()),
+            rng.gen_range(range.clone()),
+            rng.gen_range(range.clone()),
         ]);
     }
 
