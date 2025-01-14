@@ -134,7 +134,7 @@ fn main() {
                     };
 
 
-                    for pos in random_positions.clone() {
+                    for pos in &random_positions {
                         target.draw((&positions, &normals), &indices, &program,
                         &uniform! { model: matrices::move_and_scale(pos[0], pos[1], pos[2], 0.01), view: view, perspective: perspective, u_light: light, yaw_matrix: yaw_matrix},
                         &params).unwrap();
