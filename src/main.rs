@@ -1,3 +1,4 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use std::{io::Cursor, time::Instant};
 use rodio::{OutputStream, Source};
 
@@ -71,7 +72,6 @@ fn main() {
                 glium::winit::event::WindowEvent::RedrawRequested => {
                     let delta_time = Instant::now() - before; // Work out delta time
                     let delta_secs = delta_time.as_secs_f32();
-                    println!("{} FPS", 1.0/delta_secs);
                     before = Instant::now(); // Set this for next frame
 
                     let forward = [
