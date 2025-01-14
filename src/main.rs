@@ -165,7 +165,7 @@ fn main() {
                         yaw.sin() * pitch.cos(),
                     ];
 
-                    let teapot_yaw = (Instant::now()-start).as_secs_f32()*8.133333333333332;
+                    let teapot_yaw = (Instant::now()-start).as_secs_f32()*6.5;
 
                     let yaw_sin = teapot_yaw.sin();
                     let yaw_cos = teapot_yaw.cos();
