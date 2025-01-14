@@ -1,0 +1,9 @@
+[package]
+name = "spinning-teapot-but-you-can-wasd-to-move"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+glium = { version = "0.36.0", features = ["simple_window_builder"] }
+rand = "0.8.5"
+rodio = "0.20.1"
