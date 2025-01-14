@@ -12,7 +12,7 @@ Default (No parameters)
 ```
 Custom (parameters)
 ```bash
-./spinning-teapot-but-you-can-wasd-to-move-linux <amount> <range>
+./spinning-teapot-but-you-can-wasd-to-move-linux <amount> <range> <follow speed> <spawn speed>
 ```
 Default parameters (10000 teapots with -64 - 64 range)
 ```bash
@@ -21,4 +21,12 @@ Default parameters (10000 teapots with -64 - 64 range)
 one single teapot
 ```bash
 ./spinning-teapot-but-you-can-wasd-to-move-linux 1 0.1
+```
+Make a teapot that follows you :)
+```bash
+./spinning-teapot-but-you-can-wasd-to-move-linux 1 0.1 1
+```
+Spawn teapots over time
+```bash
+./spinning-teapot-but-you-can-wasd-to-move-linux 0 64 0 1
 ```

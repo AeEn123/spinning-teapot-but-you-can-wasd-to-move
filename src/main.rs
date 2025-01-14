@@ -44,6 +44,9 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let num_positions: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(1000); // Allow user to specify in CLI how many teapots there are, default to 1000
     let float_range: f32 = args.get(2).and_then(|s: &String| s.parse().ok()).unwrap_or(64.0); // Allow user to range in CLI
+    let follow_speed: f32 = args.get(3).and_then(|s: &String| s.parse().ok()).unwrap_or(0.0); // Allow user enable following in CLI
+    let spawn_speed: usize = args.get(4).and_then(|s: &String| s.parse().ok()).unwrap_or(0); // Allow spawning
+
     let range = -float_range..float_range;
 
     let mut rng = StdRng::seed_from_u64(0);
@@ -69,6 +72,7 @@ fn main() {
     
     let mut yaw = 0.0f32; // Horizontal rotation (in radians)
     let mut pitch = 0.0f32; // Vertical rotation (in radians)
+
     event_loop.run(move |ev, window_target| {
         match ev {
             glium::winit::event::Event::WindowEvent { event, .. } => match event {
@@ -101,6 +105,24 @@ fn main() {
                     pos[0] += world_move_vector[0] * delta_secs * 3.0;
                     pos[1] += world_move_vector[1] * delta_secs * 3.0;
                     pos[2] += world_move_vector[2] * delta_secs * 3.0;
+
+                    if follow_speed != 0.0 {
+                        for position in &mut random_positions {
+                            position[0] += (pos[0] - position[0]) * follow_speed/100.0;
+                            position[1] += (pos[1] - position[1]) * follow_speed/100.0;
+                            position[2] += (pos[2] - position[2]) * follow_speed/100.0;                           
+                        }
+                    }
+
+                    if spawn_speed != 0 {
+                        for _ in 0..spawn_speed {
+                            random_positions.push([
+                                rng.gen_range(range.clone()),
+                                rng.gen_range(range.clone()),
+                                rng.gen_range(range.clone()),
+                            ]);
+                        }
+                    }
 
 
                     let direction = [
