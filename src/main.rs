@@ -108,9 +108,9 @@ fn main() {
 
                     if follow_speed != 0.0 {
                         for position in &mut random_positions {
-                            position[0] += (pos[0] - position[0]) * follow_speed/100.0;
-                            position[1] += (pos[1] - position[1]) * follow_speed/100.0;
-                            position[2] += (pos[2] - position[2]) * follow_speed/100.0;                           
+                            position[0] += (pos[0] - position[0]) * follow_speed * delta_secs;
+                            position[1] += (pos[1] - position[1]) * follow_speed * delta_secs;
+                            position[2] += (pos[2] - position[2]) * follow_speed * delta_secs;
                         }
                     }
 
