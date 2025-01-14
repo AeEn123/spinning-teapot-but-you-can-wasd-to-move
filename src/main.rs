@@ -5,6 +5,7 @@ use rodio::{OutputStream, Source};
 use glium::{winit::{keyboard::{KeyCode, PhysicalKey}, window::Window}, Surface, uniform};
 use rand::{SeedableRng, Rng};
 use rand::rngs::StdRng;
+use clap::Parser;
 mod teapot;
 mod matrices;
 
@@ -20,6 +21,18 @@ fn unlock_cursor(window: &Window) {
         eprintln!("Failed to unlock mouse!")
     }
     window.set_cursor_visible(true);
+}
+
+fn hex_to_rgb(hex: &str) -> Result<[f32; 3], &str> {
+    if hex.len() != 7 || !hex.starts_with('#') {
+        return Err("Invalid hex format");
+    }
+
+    let r = u8::from_str_radix(&hex[1..3], 16).map_err(|_| "Invalid hex value")?;
+    let g = u8::from_str_radix(&hex[3..5], 16).map_err(|_| "Invalid hex value")?;
+    let b = u8::from_str_radix(&hex[5..7], 16).map_err(|_| "Invalid hex value")?;
+
+    Ok([r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0])
 }
 
 fn main() {
@@ -41,11 +54,32 @@ fn main() {
 
     let mut random_positions = Vec::new();
 
-    let args: Vec<String> = std::env::args().collect();
-    let num_positions: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(1000); // Allow user to specify in CLI how many teapots there are, default to 1000
-    let float_range: f32 = args.get(2).and_then(|s: &String| s.parse().ok()).unwrap_or(64.0); // Allow user to range in CLI
-    let follow_speed: f32 = args.get(3).and_then(|s: &String| s.parse().ok()).unwrap_or(0.0); // Allow user enable following in CLI
-    let spawn_speed: usize = args.get(4).and_then(|s: &String| s.parse().ok()).unwrap_or(0); // Allow spawning
+    #[derive(Parser)]
+    struct Args {
+        /// Amount of teapots to spawn
+        #[arg(short, long, default_value_t = 1000)]
+        amount: usize,
+        /// Range where teapots should spawn, e.g a value of 64 would spawn in between -64 and 64 on the x, y and z axis.
+        #[arg(short, long, default_value_t = 64.0)]
+        range: f32,
+        /// Set to a value other than 0 to make the teapots follow you, The value controls how fast they will follow you
+        #[arg(short, long, default_value_t = 0.0)]
+        follow_speed: f32,
+        /// Set to a value other than 0 to control how much will spawn each frame, a value of 2 will spawn 2 teapots each frame
+        #[arg(short, long, default_value_t = 0)]
+        spawn_speed: usize,
+        /// Set the colour of every teapot, a value of "#00FF00" will make every teapot green
+        #[arg(short, long, default_value_t = format!("#FF0000"))]
+        colour: String,
+    }
+
+    let args = Args::parse();
+
+    let num_positions = args.amount;
+    let float_range = args.range;
+    let follow_speed = args.follow_speed;
+    let spawn_speed = args.spawn_speed;
+    let teapot_colour = hex_to_rgb(&args.colour).unwrap();
 
     let range = -float_range..float_range;
 
@@ -164,7 +198,7 @@ fn main() {
 
                     for pos in &random_positions {
                         target.draw((&positions, &normals), &indices, &program,
-                        &uniform! { model: matrices::move_and_scale(pos[0], pos[1], pos[2], 0.01), view: view, perspective: perspective, u_light: light, yaw_matrix: yaw_matrix},
+                        &uniform! { model: matrices::move_and_scale(pos[0], pos[1], pos[2], 0.01), view: view, perspective: perspective, u_light: light, yaw_matrix: yaw_matrix, colour: teapot_colour},
                         &params).unwrap();
                     }
                     // Draw to screen
