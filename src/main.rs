@@ -36,6 +36,55 @@ fn hex_to_rgb(hex: &str) -> Result<[f32; 3], &str> {
 }
 
 fn main() {
+    #[derive(Parser)]
+    struct Args {
+        /// Amount of teapots to spawn
+        #[arg(short, long, default_value_t = 1000)]
+        amount: usize,
+        /// Range where teapots should spawn, e.g a value of 64 would spawn in between -64 and 64 on the x, y and z axis.
+        #[arg(short, long, default_value_t = 64.0)]
+        range: f32,
+        /// Set to a value other than 0 to make the teapots follow you, The value controls how fast they will follow you
+        #[arg(short, long, default_value_t = 0.0)]
+        follow_speed: f32,
+        /// Set to a value other than 0 to control how much will spawn each period, a value of 2 will spawn 2 teapots each period
+        #[arg(short, long, default_value_t = 0)]
+        spawn_amount: usize,
+        /// Controls the period for spawn_amount in seconds
+        #[arg(long, default_value_t = 0.0)]
+        spawn_period: f32,
+        /// Controls how long to wait until the spawning starts
+        #[arg(long, default_value_t = 0.0)]
+        spawn_after: f32,
+        /// Set to a value other than 0 to control how much will despawn each period, a value of 2 will despawn 2 teapots each period
+        #[arg(short, long, default_value_t = 0)]
+        despawn_amount: usize,
+        /// Controls the period for despawn_amount in seconds
+        #[arg(long, default_value_t = 0.0)]
+        despawn_period: f32,
+        /// Controls how long to wait until the despawning starts
+        #[arg(long, default_value_t = 4.0)]
+        despawn_after: f32,
+        /// Set the colour of every teapot, a value of "#00FF00" will make every teapot green
+        #[arg(short, long, default_value_t = format!("#FF0000"))]
+        colour: String,
+    }
+
+    let args = Args::parse();
+
+    let num_positions = args.amount;
+    let float_range = args.range;
+    let follow_speed = args.follow_speed;
+    let spawn_period = args.spawn_period;
+    let spawn_amount = args.spawn_amount;
+    let despawn_period = args.despawn_period;
+    let despawn_amount = args.despawn_amount;
+    let spawn_after = args.spawn_after;
+    let despawn_after = args.despawn_after;
+    let teapot_colour = hex_to_rgb(&args.colour).unwrap();
+
+    let range = -float_range..float_range;
+
     let event_loop = glium::winit::event_loop::EventLoop::builder()
         .build()
         .expect("event loop building");
@@ -54,35 +103,6 @@ fn main() {
 
     let mut random_positions = Vec::new();
 
-    #[derive(Parser)]
-    struct Args {
-        /// Amount of teapots to spawn
-        #[arg(short, long, default_value_t = 1000)]
-        amount: usize,
-        /// Range where teapots should spawn, e.g a value of 64 would spawn in between -64 and 64 on the x, y and z axis.
-        #[arg(short, long, default_value_t = 64.0)]
-        range: f32,
-        /// Set to a value other than 0 to make the teapots follow you, The value controls how fast they will follow you
-        #[arg(short, long, default_value_t = 0.0)]
-        follow_speed: f32,
-        /// Set to a value other than 0 to control how much will spawn each frame, a value of 2 will spawn 2 teapots each frame
-        #[arg(short, long, default_value_t = 0)]
-        spawn_speed: usize,
-        /// Set the colour of every teapot, a value of "#00FF00" will make every teapot green
-        #[arg(short, long, default_value_t = format!("#FF0000"))]
-        colour: String,
-    }
-
-    let args = Args::parse();
-
-    let num_positions = args.amount;
-    let float_range = args.range;
-    let follow_speed = args.follow_speed;
-    let spawn_speed = args.spawn_speed;
-    let teapot_colour = hex_to_rgb(&args.colour).unwrap();
-
-    let range = -float_range..float_range;
-
     let mut rng = StdRng::seed_from_u64(0);
 
     for _ in 0..num_positions {
@@ -100,6 +120,10 @@ fn main() {
 
     let mut before = Instant::now(); // used for delta_time
     let start = Instant::now(); // Used to calculate time elapsed since program started
+
+    let mut last_spawn = Instant::now(); // Used for checking spawn_period
+    let mut last_despawn = Instant::now(); // Used for checking despawn_period
+
 
     let mut pos = [0.0, 0.0, 0.0f32];
     let mut move_vector = [0.0, 0.0, 0.0];
@@ -148,16 +172,32 @@ fn main() {
                         }
                     }
 
-                    if spawn_speed != 0 {
-                        for _ in 0..spawn_speed {
-                            random_positions.push([
-                                rng.gen_range(range.clone()),
-                                rng.gen_range(range.clone()),
-                                rng.gen_range(range.clone()),
-                            ]);
+                    if spawn_amount != 0 {
+                        // before = Instant::now()
+                        if (before-start).as_secs_f32() >= spawn_after && (before-last_spawn).as_secs_f32() >= spawn_period {
+                            last_spawn = before; // again, before = Instant::now()
+                            for _ in 0..spawn_amount {
+                                random_positions.push([
+                                    rng.gen_range(range.clone()),
+                                    rng.gen_range(range.clone()),
+                                    rng.gen_range(range.clone()),
+                                ]);
+                            }
                         }
                     }
 
+                    if despawn_amount != 0 {
+                        // before = Instant::now()
+                        if (before-start).as_secs_f32() >= despawn_after && (before-last_despawn).as_secs_f32() >= despawn_period {
+                            for _ in 0..despawn_amount {
+                                if  random_positions.len() > 0 {
+                                    last_despawn = before; // again, before = Instant::now()
+                                    random_positions.remove(0);
+                                }
+
+                            }
+                        }
+                    }
 
                     let direction = [
                         yaw.cos() * pitch.cos(),
