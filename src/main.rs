@@ -68,6 +68,9 @@ fn main() {
         /// Set the colour of every teapot, a value of "#00FF00" will make every teapot green
         #[arg(short, long, default_value_t = format!("#FF0000"))]
         colour: String,
+        /// Seed for the random teapot positions
+        #[arg(long, default_value_t = 0)]
+        seed: u64,
     }
 
     let args = Args::parse();
@@ -103,7 +106,7 @@ fn main() {
 
     let mut random_positions = Vec::new();
 
-    let mut rng = StdRng::seed_from_u64(0);
+    let mut rng = StdRng::seed_from_u64(args.seed);
 
     for _ in 0..num_positions {
         random_positions.push([
